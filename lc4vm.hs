@@ -1,7 +1,18 @@
 
 {-# LANGUAGE GADTs #-}
 
+module LC4VM where
+
+import Data.Int (Int16)
+import Data.Map (Map)
+import Data.Set (Set)
+
 type Label = String
+type LineNumber = Int
+
+data Line = Insn Instruction
+          | Comment String
+          | Directive String
 
 data Register = R0 
               | R1
@@ -11,6 +22,17 @@ data Register = R0
               | R5
               | R6
               | R7
+
+type RegisterFile = Map Register Int16
+type Program = Map LineNumber Line
+type Memory = Map Int16 Int16
+type Breakpoints = Set LineNumber
+
+data CC = CC_N 
+        | CC_Z 
+        | CC_P
+
+type VMState = (RegisterFile, Program, Memory, Breakpoints, CC)
 
 data I5
 data I7
@@ -25,7 +47,7 @@ data IMM n where
   IMM5 :: Int -> IMM I5
   IMM7 :: Int -> IMM I7
 
-data CC = N
+data BC = N
         | NZ
         | NP
         | Z
@@ -34,10 +56,15 @@ data CC = N
         | NZP
 
 data Instruction = NOP
-                 | BR CC Label
+                 | BR BC Label
                  | ADD Register Register Register
                  | MUL Register Register Register
                  | SUB Register Register Register
                  | DIV Register Register Register
                  | Addi Register Register (IMM I5)
-                 
+                 | CMP Register Register
+
+-- todo move to the parser
+checkIMM :: IMM n -> Bool
+checkIMM (IMM5 n) = False
+
