@@ -33,12 +33,12 @@ data Register = R0
               | R7
 
 -- Parser builds these
-type Program = Map LineNumber Line
-type Labels = Map Label (LineNumber, Int16)
+type Program = Map (Imm U16) (LineNumber, Line)
+type Labels = Map Label (LineNumber, (Imm U16))
 
 -- Mutable state
-type RegisterFile = Map Register Int16
-type Memory = Map Int16 Int16
+type RegisterFile = Map Register (Imm U16)
+type Memory = Map (Imm U16) (Imm U16)
 type Breakpoints = Set LineNumber
 data CC = CC_N
         | CC_Z
@@ -109,8 +109,4 @@ data Instruction = NOP
                  | RET
                  | LEA Register Label
                  | LC Register Label
-
--- todo move to the parser
-checkIMM :: Imm n -> Bool
-checkIMM (IMM5 n) = False
 
