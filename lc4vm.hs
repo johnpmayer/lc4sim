@@ -43,8 +43,9 @@ type Breakpoints = Set LineNumber
 data CC = CC_N
         | CC_Z
         | CC_P
+type PC = (Imm U16)
 
-type VMState = (RegisterFile, Memory, Breakpoints, CC)
+type VMState = (Program, Labels, RegisterFile, Memory, Breakpoints, PC, CC)
 
 data I5
 data I6
@@ -66,6 +67,20 @@ data Imm n where
   UIMM7  :: Int -> Imm U7
   UIMM8  :: Int -> Imm U8
   UIMM16 :: Int -> Imm U16
+
+instance Eq (Imm n) where
+  (IMM5 n1) == (IMM5 n2) = n1 == n2
+  (IMM6 n1) == (IMM6 n2) = n1 == n2
+  (IMM7 n1) == (IMM7 n2) = n1 == n2
+  (IMM9 n1) == (IMM9 n2) = n1 == n2
+  (IMM16 n1) == (IMM16 n2) = n1 == n2
+  (UIMM4 n1) == (UIMM4 n2) = n1 == n2
+  (UIMM7 n1) == (UIMM7 n2) = n1 == n2
+  (UIMM8 n1) == (UIMM8 n2) = n1 == n2
+  (UIMM16 n1) == (UIMM16 n2) = n1 == n2
+
+instance Ord (Imm n) where
+  (IMM16 n1) `compare` (IMM16 n2) = n1 `compare` n2
 
 data BC = N
         | NZ
