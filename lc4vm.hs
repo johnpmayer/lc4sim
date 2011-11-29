@@ -34,15 +34,13 @@ data Register = R0
 
 -- Parser builds these
 type Program = Map (Imm U16) (LineNumber, Line)
-type Labels = Map Label (LineNumber, (Imm U16))
+type Labels = Map Label (Imm U16)
 
 -- Mutable state
 type RegisterFile = Map Register (Imm U16)
 type Memory = Map (Imm U16) (Imm U16)
 type Breakpoints = Set LineNumber
-data CC = CC_N
-        | CC_Z
-        | CC_P
+data CC = CC_N | CC_Z | CC_P deriving Eq
 type PC = (Imm U16)
 
 type VMState = (Program, Labels, RegisterFile, Memory, Breakpoints, PC, CC)
