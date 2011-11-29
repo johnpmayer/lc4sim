@@ -4,6 +4,21 @@
   - Trello is used for collaboration amongst current devs at: 
 	https://trello.com/board/lc4sim/4ed3e6e4aebfc0d21d0ee596
 
-* parser
+* Modules
+** parser
 
-* lc4env
+** lc4env
+
+  The PC is going to be represented with line numbers. Comments are considered
+  as NOPs. As long as the invariant holds internally, the OS will not clobber
+  R7 accidentally. 
+
+** simulator
+
+  Performs the interpretation and altering of state.
+
+** pretty_printer
+
+** cmdline
+
+** main
