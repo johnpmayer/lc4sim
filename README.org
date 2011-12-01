@@ -5,9 +5,16 @@
 	https://trello.com/board/lc4sim/4ed3e6e4aebfc0d21d0ee596
 
 * Modules
-** parser
 
+** lc4parser
+   
+   Parses LC4 assembly file into lc4env data structures to be used in rest of 
+   program. 
+   
 ** lc4env
+
+   The data type definitions of the LC4 environment, as well as associated 
+   data structures used to represent state.
 
   The PC is going to be represented with line numbers. Comments are considered
   as NOPs. As long as the invariant holds internally, the OS will not clobber
@@ -15,10 +22,13 @@
 
 ** simulator
 
-  Performs the interpretation and altering of state.
+  - Performs the interpretation and altering of state.
+  - Prepares the environment from parser. 
 
 ** pretty_printer
 
 ** cmdline
+
+** error
 
 ** main

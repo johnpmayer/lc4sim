@@ -13,6 +13,8 @@ insnP = undefined
 
 -- Can't figure this one out except for making a huge case switch
 -- on the IMM width, which seems stupid. Any ideas?
+-- Idea 1: Create seperate parser for each IMM type, and call that parser
+--         depending on the insn.
 -- immP :: Imm n -> PS.Parser Imm n
 -- immP w = char '#' >> 
 --         int >>= \i -> return $ Imm n
