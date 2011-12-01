@@ -94,7 +94,7 @@ data Instruction = NOP
                  | MUL Register Register Register
                  | SUB Register Register Register
                  | DIV Register Register Register
-                 | Addi Register Register (Imm I5)
+                 | AddI Register Register (Imm I5)
                  | CMP Register Register
                  | CMPU Register Register
                  | CMPI Register (Imm I7)
