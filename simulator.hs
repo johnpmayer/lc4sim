@@ -15,6 +15,9 @@ readPC = liftM pc get
 updatePC :: Int -> State (VMState) ()
 updatePC target = get >>= (\s -> put s {pc = target})
 
+incrPC :: State (VMState) ()
+incrPC = liftM pc get >>= (\pc' -> updatePC $ pc' + 1)
+
 readRegister :: Register -> State (VMState) Int
 readRegister r = liftM ((regValue r).regFile) get
 
@@ -59,14 +62,8 @@ derefLabel lbl = liftM ((lblValue lbl).lbls) get
 setPSR :: Bool -> State VMState ()
 setPSR b = get >>= (\s -> put s {psr = b})
 
--- ToDo: incrementPC :: State VMState () -- or something
-
-step :: Instruction -> State (VMState) ()
-step NOP = return ()
-
-step (BR bc lbl) = do cc' <- readCC
-                      target <- derefLabel lbl
-                      if (case bc of
+evalBranch :: CC -> BC -> Bool
+evalBranch cc' bc' = case bc' of
                                        N -> cc' == CC_N
                                        Z -> cc' == CC_Z
                                        P -> cc' == CC_P
@@ -76,31 +73,43 @@ step (BR bc lbl) = do cc' <- readCC
                                           || cc' == CC_P
                                        ZP -> cc' == CC_Z
                                           || cc' == CC_P
-                                       NZP -> True)
-                      then updatePC target
-                      else return ()
+                                       NZP -> True
 
-step (ADD d s1 s2) = stepSimpleBop (+) s1 s2 d
-step (MUL d s1 s2) = stepSimpleBop (*) s1 s2 d
-step (SUB d s1 s2) = stepSimpleBop (-) s1 s2 d
-step (DIV d s1 s2) = stepSimpleBop div s1 s2 d
+step :: Instruction -> State (VMState) ()
+step NOP = return ()
+
+step (BR bc lbl) = do cc' <- readCC
+                      target <- derefLabel lbl
+                      if evalBranch cc' bc
+                      then updatePC target
+                      else incrPC
+
+step (ADD d s1 s2) = stepSimpleBop (+) s1 s2 d >> incrPC
+step (MUL d s1 s2) = stepSimpleBop (*) s1 s2 d >> incrPC
+step (SUB d s1 s2) = stepSimpleBop (-) s1 s2 d >> incrPC
+step (DIV d s1 s2) = stepSimpleBop div s1 s2 d >> incrPC
 
 step (ADDI d s i) = do input <- readRegister s
                        writeRegister d $ input + i
+                       incrPC
 
 step (CMP s1 s2) = do i1 <- readRegister s1
                       i2 <- readRegister s2
                       writeConditionCode $ i1 `compare` i2
+                      incrPC
 
 step (CMPU s1 s2) = do i1 <- readRegister s1
                        i2 <- readRegister s2
                        writeConditionCode $ i1 `compare` i2
+                       incrPC
 
 step (CMPI s imm) = do i1 <- readRegister s
                        writeConditionCode $ i1 `compare` imm
+                       incrPC
 
 step (CMPIU s imm) = do i1 <- readRegister s
                         writeConditionCode $ i1 `compare` imm
+                        incrPC
 
 step (JSR lbl) = do pc' <- derefLabel lbl
                     updatePC pc'
@@ -108,39 +117,45 @@ step (JSR lbl) = do pc' <- derefLabel lbl
 step (JSRR s) = do pc' <- readRegister s
                    updatePC pc'
 
-step (AND d s1 s2) = stepSimpleBop (.&.) s1 s2 d
-step (OR d s1 s2)  = stepSimpleBop (.|.) s1 s2 d
+step (AND d s1 s2) = stepSimpleBop (.&.) s1 s2 d >> incrPC
+step (OR d s1 s2)  = stepSimpleBop (.|.) s1 s2 d >> incrPC
 
 step (NOT d s) = do i <- readRegister s
                     writeRegister d $ complement i
+                    incrPC
 
-step (XOR d s1 s2) = stepSimpleBop xor s1 s2 d
+step (XOR d s1 s2) = stepSimpleBop xor s1 s2 d >> incrPC
 
 step (ANDI d s imm) = do i <- readRegister s
                          writeRegister d $ i .&. imm
+                         incrPC
 
 step (LDR d s offset) = do addr <- readRegister s
                            val  <- readMemory (addr + offset)
                            writeRegister d val
+                           incrPC
 
 step (STR d s offset) = do addr <- readRegister s
                            val  <- readRegister d
                            writeMemory (addr + offset) val
+                           incrPC
 
 step RTI = do readRegister R7 >>= updatePC
               setPSR False
 
-step (CONST d imm) = writeRegister d imm
+step (CONST d imm) = writeRegister d imm >> incrPC
 
 step (SLL d s imm) = do i <- readRegister s
                         writeRegister d $ i `shiftL` imm
+                        incrPC
 
 step (SRA d s imm) = do i <- readRegister s
                         writeRegister d $ i `shiftR` imm
+                        incrPC
 
-step (SRL _d _s _imm) = error "todo: SRL"
+step (SRL _d _s _imm) = error "todo: SRL" >> incrPC
 
-step (MOD d s1 s2) = stepSimpleBop mod s1 s2 d
+step (MOD d s1 s2) = stepSimpleBop mod s1 s2 d >> incrPC
 
 step (JMPR r) = readRegister r >>= updatePC
 
@@ -149,6 +164,7 @@ step (JMP lbl) = derefLabel lbl >>= updatePC
 step (HICONST d imm) = do i <- readRegister d
                           writeRegister d $
                             (i .&. 255) .|. (i `shiftL` imm)
+                          incrPC
 
 step (TRAP uimm) = do readPC >>= writeRegister R7
                       updatePC (uimm .|. (1 `shiftL` 15))
@@ -156,6 +172,7 @@ step (TRAP uimm) = do readPC >>= writeRegister R7
                       
 step RET = step $ JMPR R7
 
-step (LEA r lbl) = derefLabel lbl >>= writeRegister r
+step (LEA r lbl) = derefLabel lbl >>= writeRegister r >> incrPC
 
-step (LC _r _lbl) = error "todo constants?"
+step (LC _r _lbl) = error "todo constants?" >> incrPC
+
