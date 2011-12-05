@@ -12,9 +12,10 @@ import Control.Monad.State
 type LineNumber = Int
 type Label = String
 
-data Line = Insn Instruction (Maybe Label)
+data Line = Label Label
+          | Insn Instruction
           | Dir Directive (Maybe Label)
-          | Comment String
+          | Whitespace
        deriving Show
 
 data Directive = D_DATA
