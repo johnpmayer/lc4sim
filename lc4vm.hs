@@ -4,6 +4,7 @@ module LC4VM where
 import Data.Int (Int16)
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as S
 import Control.Monad.State
@@ -49,10 +50,20 @@ type Breakpoints = Set LineNumber
 data CC = CC_N | CC_Z | CC_P deriving (Eq, Show)
 type PC = Int
 
+regValue :: Register -> RegisterFile -> Int
+regValue reg regFile = fromMaybe 0 $ M.lookup reg regFile
+
+memValue :: Int -> Memory -> Int
+memValue addr mem = fromMaybe 0 $ M.lookup addr mem
+
+lblValue :: Label -> Labels -> Int
+lblValue lbl labels = 
+  fromMaybe (error "missing label") $ M.lookup lbl labels
+
 data VMState = VM { prog :: Program,
                     lbls :: Labels,
                     regFile :: RegisterFile,
-                    mem :: Memory,
+                    memory :: Memory,
                     brks :: Breakpoints,
                     pc :: PC,
                     cc :: CC,
