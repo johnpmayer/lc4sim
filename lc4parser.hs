@@ -46,74 +46,36 @@ commentP =
 
 -- | Parses an LC4 hexadecimal representation.
 hexP :: Parser Int
-hexP = do char 'x'
+hexP = do _ <- char 'x'
           i <- int
           return i
 
 -- | Parses an LC4 decimal representation. 
 decP :: Parser Int
-decP = do char '#'
+decP = do _ <- char '#'
           i <- int
           return i
+          
+-- | Parses an LC4 integer of any representation.
+intP :: Parser Int
+intP = hexP <|> decP
 
 -- | Parses an LC4 directive
 directiveP :: Parser Directive
 directiveP = choice [constP ".DATA" D_DATA,
                      constP ".CODE" D_CODE,
-                     parseAddr,
+                     constP ".ADDR" D_ADDR >>= 
+                      \d -> intP >>= \i -> return $ d i,
                      constP ".FALIGN" D_FALIGN,
-                     parseFill,
-                     parseBlkw,
-                     parseConst,
-                     parseUconst]
-             where
-               parseAddr :: Parser Directive
-               parseAddr = 
-                 do string ".ADDR"
-                    i <- hexP <|> decP
-                    return $ D_ADDR (UIMM16 i)
-                   
-               parseFill :: Parser Directive
-               parseFill = 
-                 do string ".FILL"
-                    i <- hexP
-                    return $ D_FILL (IMM16 i)
-                 
-               parseBlkw :: Parser Directive
-               parseBlkw = 
-                 do string ".BLKW"
-                    i <- hexP
-                    return $ D_BLKW (UIMM16 i)
-
-               parseConst :: Parser Directive
-               parseConst = 
-                 do string ".CONST"
-                    i <- hexP
-                    return $ D_CONST (IMM16 i)
-
-               parseUconst :: Parser Directive
-               parseUconst = 
-                 do string ".UCONST"
-                    i <- hexP
-                    return $ D_UCONST (UIMM16 i)
-                    
-               parseStringUD :: String -> Parser Directive
-               parseStringUD s = 
-                 do string s
-                    
-               
-               
--- Can't figure this one out except for making a huge case switch
--- on the IMM width, which seems stupid. Any ideas?
--- Idea 1: Create seperate parser for each IMM type, and call that parser
---         depending on the insn.
---immP :: Imm n -> Parser Imm n
---immP w = char '#' >> 
---        int >>= \i -> return $ Imm n
-
-immU16P :: Parser (Imm U16)
-immU16P = int >>= \i -> return $ UIMM16 i
-
+                     constP ".FILL" D_FILL >>=
+                       \d -> intP >>= \i -> return $ d i,
+                     constP ".BLKW" D_BLKW >>=
+                       \d -> intP >>= \i -> return $ d i,
+                     constP ".CONST" D_CONST >>= 
+                       \d -> intP >>= \i -> return $ d i,
+                     constP ".UCONST" D_UCONST >>=
+                       \d -> intP >>= \i -> return $ d i]
+             
 -- | Parses a register identifier
 -- Todo: error handling
 regP :: Parser Register
