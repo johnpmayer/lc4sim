@@ -9,8 +9,6 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Control.Monad.State
 
-import Immediate
-
 type LineNumber = Int
 type Label = String
 
