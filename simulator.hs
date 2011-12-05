@@ -27,7 +27,7 @@ readRegister r = do (_, _, regFile, _, _, _, _) <- get
 
 writeRegister :: Register -> Imm U16 -> State (VMState) (Imm U16)
 writeRegister r u16 = do (prog, lbls, regFile, mem, brks, pc, cc) <- get
-                         let regFile' = M.insert r u16
+                         let regFile' = M.insert r u16 regFile
                          put (prog, lbls, regFile', mem, brks, pc, cc)
                          return u16
 
@@ -56,3 +56,4 @@ exec (ADD s1 s2 d) = do (_prog, _lbls, regFile, _mem, _brks, _pc, _cc) <- get
                         input1 <- readRegister s1
                         input2 <- readRegister s2
                         writeRegister d (input1 + input2)
+                        return ()

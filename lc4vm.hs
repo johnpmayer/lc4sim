@@ -1,6 +1,4 @@
 
-{-# LANGUAGE GADTs #-}
-
 module LC4VM where
 
 import Data.Int (Int16)
@@ -19,12 +17,12 @@ data Line = Insn Instruction
 
 data Directive = D_DATA
                | D_CODE
-               | D_ADDR (Imm U16)
+               | D_ADDR Int
                | D_FALIGN
-               | D_FILL (Imm I16)
-               | D_BLKW (Imm U16)
-               | D_CONST (Imm I16)
-               | D_UCONST (Imm U16)
+               | D_FILL Int
+               | D_BLKW Int
+               | D_CONST Int
+               | D_UCONST Int
 
 data Register = R0
               | R1
@@ -36,15 +34,15 @@ data Register = R0
               | R7
 
 -- Parser builds these
-type Program = Map (Imm U16) (LineNumber, Line)
-type Labels = Map Label (Imm U16)
+type Program = Map Int (LineNumber, Line)
+type Labels = Map Label Int
 
 -- Mutable state
-type RegisterFile = Map Register (Imm U16)
-type Memory = Map (Imm U16) (Imm U16)
+type RegisterFile = Map Register Int
+type Memory = Map Int Int
 type Breakpoints = Set LineNumber
 data CC = CC_N | CC_Z | CC_P deriving Eq
-type PC = (Imm U16)
+type PC = Int
 
 type VMState = (Program, Labels, RegisterFile, Memory, Breakpoints, PC, CC)
 
@@ -62,30 +60,30 @@ data Instruction = NOP
                  | MUL Register Register Register
                  | SUB Register Register Register
                  | DIV Register Register Register
-                 | AddI Register Register (Imm I5)
+                 | AddI Register Register Int
                  | CMP Register Register
                  | CMPU Register Register
-                 | CMPI Register (Imm I7)
-                 | CMPIU Register (Imm U7)
+                 | CMPI Register Int
+                 | CMPIU Register Int
                  | JSR Label
                  | JSRR Register
                  | AND Register Register Register
                  | NOT Register Register
                  | OR Register Register Register
                  | XOR Register Register Register
-                 | ANDI Register Register (Imm I5)
-                 | LDR Register Register (Imm I6)
-                 | STR Register Register (Imm I6)
+                 | ANDI Register Register Int
+                 | LDR Register Register Int
+                 | STR Register Register Int
                  | RTI
-                 | CONST Register (Imm I9)
-                 | SLL Register Register (Imm U4)
-                 | SRA Register Register (Imm U4)
-                 | SRL Register Register (Imm U4)
+                 | CONST Register Int
+                 | SLL Register Register Int
+                 | SRA Register Register Int
+                 | SRL Register Register Int
                  | MOD Register Register Register
                  | JMPR Register
                  | JMP Label
-                 | HICONST Register (Imm U8)
-                 | TRAP (Imm U8)
+                 | HICONST Register Int
+                 | TRAP Int
                  -- Psuedo-Instructions
                  | RET
                  | LEA Register Label
