@@ -8,6 +8,7 @@ import ParserCombinators
 -- Parse the lines left to write and delegate to another parser
 -- as necessary
 
+-- | Parse a String as a specific datatype. 
 constP :: String -> a -> Parser a
 constP s a = string s >> return a
 
@@ -17,6 +18,24 @@ lineP = choice [insnP >>= \insn -> return $ Insn insn,
                 commentP >>= \c -> return $ Comment c, 
                 directiveP >>= \d -> return $ Dir d]
 
+-- | Parses an LC4 operation that expects 3 register arguments
+triOpP :: Parser (Register -> Register -> Register -> Instruction) 
+triOpP = constP "ADD" ADD <|>
+         constP "MUL" MUL <|>
+         constP "SUB" SUB <|> 
+         constP "DIV" DIV <|>
+         constP "AND" AND <|> 
+         constP "OR" OR <|>
+         constP "XOR" XOR <|>
+         constP "MOD" MOD
+
+-- | Parses an LC4 operation that expects 2 register arguments
+biOpP :: Parser (Register -> Register -> Instruction)
+biOpP = constP "CMP" CMP <|>
+        constP "CMPU" CMPU <|>
+        constP "NOT" NOT
+
+-- | Parses an LC4 Instruction. 
 insnP :: Parser Instruction
 insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
                 duoRegImmOpP, regImmOpP]
@@ -28,9 +47,18 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
           -- Branches
           brP = undefined
           -- Instructions that take 3 register args
-          triRegOpP = undefined
+          triRegOpP = 
+            do op <- triOpP
+               r1 <- regP
+               r2 <- regP
+               r3 <- regP
+               return $ op r1 r2 r3
           -- Insns that take 2 reg args
-          duoRegOpP = undefined
+          duoRegOpP = 
+            do op <- biOpP
+               r1 <- regP
+               r2 <- regP
+               return $ op r1 r2
           -- Insns that take 1 reg arg
           unoRegOpP = undefined
           -- Insns that take 2 reg and 1 Imm arg
@@ -38,9 +66,11 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
           -- Insns that take 1 Imm arg
           regImmOpP = undefined
 
+-- | Parses an LC4 Comment. 
+-- TODO: can be any alphanumeric and/or more characters. 
 commentP :: Parser String
 commentP = 
-  do _hash <- many1 $ char ';'
+  do _delim <- many1 $ char ';'
      com <- many alpha
      return com
 
