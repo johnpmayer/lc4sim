@@ -44,33 +44,38 @@ commentP =
      com <- many alpha
      return com
 
--- Dunno how to deal with the IMMs here
+-- | Parses an LC4 hexadecimal representation.
+hexP :: Parser Int
+hexP = do _ <- char 'x'
+          i <- int
+          return i
+
+-- | Parses an LC4 decimal representation. 
+decP :: Parser Int
+decP = do _ <- char '#'
+          i <- int
+          return i
+          
+-- | Parses an LC4 integer of any representation.
+intP :: Parser Int
+intP = hexP <|> decP
+
+-- | Parses an LC4 directive
 directiveP :: Parser Directive
 directiveP = choice [constP ".DATA" D_DATA,
                      constP ".CODE" D_CODE,
-                     constP ".ADDR" D_ADDR >>= grabImm,
+                     constP ".ADDR" D_ADDR >>= 
+                      \d -> intP >>= \i -> return $ d i,
                      constP ".FALIGN" D_FALIGN,
-                     constP ".FILL" D_FILL >>= grabImm,
-                     constP ".BLKW" D_BLKW >>= grabImm,
-                     constP ".CONST" D_CONST >>= grabImm,
-                     constP ".UCONST" D_UCONST >>= grabImm]
+                     constP ".FILL" D_FILL >>=
+                       \d -> intP >>= \i -> return $ d i,
+                     constP ".BLKW" D_BLKW >>=
+                       \d -> intP >>= \i -> return $ d i,
+                     constP ".CONST" D_CONST >>= 
+                       \d -> intP >>= \i -> return $ d i,
+                     constP ".UCONST" D_UCONST >>=
+                       \d -> intP >>= \i -> return $ d i]
              
-             where
-               grabImm :: Directive -> Parser Directive
-               grabImm = \d -> immU16P >>=
-                               \imm -> return $ d (imm)
-
--- Can't figure this one out except for making a huge case switch
--- on the IMM width, which seems stupid. Any ideas?
--- Idea 1: Create seperate parser for each IMM type, and call that parser
---         depending on the insn.
---immP :: Imm n -> Parser Imm n
---immP w = char '#' >> 
---        int >>= \i -> return $ Imm n
-
-immU16P :: Parser (Imm U16)
-immU16P = int >>= \i -> return $ UIMM16 i
-
 -- | Parses a register identifier
 -- Todo: error handling
 regP :: Parser Register
