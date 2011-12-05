@@ -13,6 +13,7 @@ type LineNumber = Int
 type Label = String
 
 data Line = Insn Instruction
+
           | Comment String
           | Dir Directive
 

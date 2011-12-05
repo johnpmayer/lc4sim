@@ -3,7 +3,7 @@
 
 module Immediate where
 
-data I5
+data I5 = I5
 data I6
 data I7
 data I9
@@ -37,3 +37,4 @@ instance Eq (Imm n) where
 
 instance Ord (Imm n) where
   (IMM16 n1) `compare` (IMM16 n2) = n1 `compare` n2
+
