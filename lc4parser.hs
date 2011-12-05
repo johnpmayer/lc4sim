@@ -44,22 +44,65 @@ commentP =
      com <- many alpha
      return com
 
--- Dunno how to deal with the IMMs here
+-- | Parses an LC4 hexadecimal representation.
+hexP :: Parser Int
+hexP = do char 'x'
+          i <- int
+          return i
+
+-- | Parses an LC4 decimal representation. 
+decP :: Parser Int
+decP = do char '#'
+          i <- int
+          return i
+
+-- | Parses an LC4 directive
 directiveP :: Parser Directive
 directiveP = choice [constP ".DATA" D_DATA,
                      constP ".CODE" D_CODE,
-                     constP ".ADDR" D_ADDR >>= grabImm,
+                     parseAddr,
                      constP ".FALIGN" D_FALIGN,
-                     constP ".FILL" D_FILL >>= grabImm,
-                     constP ".BLKW" D_BLKW >>= grabImm,
-                     constP ".CONST" D_CONST >>= grabImm,
-                     constP ".UCONST" D_UCONST >>= grabImm]
-             
+                     parseFill,
+                     parseBlkw,
+                     parseConst,
+                     parseUconst]
              where
-               grabImm :: Directive -> Parser Directive
-               grabImm = \d -> immU16P >>=
-                               \imm -> return $ d (imm)
+               parseAddr :: Parser Directive
+               parseAddr = 
+                 do string ".ADDR"
+                    i <- hexP <|> decP
+                    return $ D_ADDR (UIMM16 i)
+                   
+               parseFill :: Parser Directive
+               parseFill = 
+                 do string ".FILL"
+                    i <- hexP
+                    return $ D_FILL (IMM16 i)
+                 
+               parseBlkw :: Parser Directive
+               parseBlkw = 
+                 do string ".BLKW"
+                    i <- hexP
+                    return $ D_BLKW (UIMM16 i)
 
+               parseConst :: Parser Directive
+               parseConst = 
+                 do string ".CONST"
+                    i <- hexP
+                    return $ D_CONST (IMM16 i)
+
+               parseUconst :: Parser Directive
+               parseUconst = 
+                 do string ".UCONST"
+                    i <- hexP
+                    return $ D_UCONST (UIMM16 i)
+                    
+               parseStringUD :: String -> Parser Directive
+               parseStringUD s = 
+                 do string s
+                    
+               
+               
 -- Can't figure this one out except for making a huge case switch
 -- on the IMM width, which seems stupid. Any ideas?
 -- Idea 1: Create seperate parser for each IMM type, and call that parser
