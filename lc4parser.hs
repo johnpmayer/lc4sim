@@ -1,10 +1,15 @@
 {-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults  #-}
 
-import LC4VM
+module LC4Parser where
 
+-- | Parses LC4 lines. 
+-- Ignores all comments unless they are on a separate line.
+
+import LC4VM
 import Parser
 import ParserCombinators
 
+import Test.HUnit
 
 -- | Parse a String as a specific datatype. 
 constP :: String -> a -> Parser a
@@ -26,11 +31,11 @@ decP = do _ <- char '#'
 intP :: Parser Int
 intP = hexP <|> decP
 
--- | Parse a line as either insn, comment, or directive.
-lineP :: Parser Line
-lineP = choice [insnP >>= \insn -> return $ Insn insn, 
-                commentP >>= \c -> return $ Comment c, 
-                directiveP >>= \d -> return $ Dir d]
+-- | Removes whitespace from Parser feed
+wsP :: Parser a -> Parser a
+wsP p = do a <- p
+           _ws <- many (char ' ' <|> char '\n')
+           return a
 
 -- | Parses an LC4 operation that expects 3 register arguments
 triOpP :: Parser (Register -> Register -> Register -> Instruction) 
@@ -63,18 +68,39 @@ triOpImmP = constP "ADD" ADDI <|>
             constP "SLL" SLL  <|>
             constP "SRA" SRA  <|>
             constP "SRL" SRL
+            
+-- | Parses an LC4 operation that expects 1 register and 1 IMM argument
+biOpRegImmP :: Parser (Register -> Int -> Instruction) 
+biOpRegImmP = constP "CMPI"  CMPI  <|>
+              constP "CMPIU" CMPIU <|>
+              constP "CONST" CONST <|>
+              constP "HICONST" HICONST
+
+-- | Parses a branch condition. 
+branchCondP :: Parser BC
+branchCondP = constP "n"  N  <|> 
+              constP "nz" NZ <|>
+              constP "np" NP <|>
+              constP "z"  Z  <|>
+              constP "zp" ZP <|>
+              constP "p"  P  <|>
+              constP "nzp" NZP
 
 -- | Parses an LC4 Instruction. 
 insnP :: Parser Instruction
 insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
-                duoRegImmOpP, regImmOpP, regLblOpP, lblOpP]
+                duoRegImmOpP, regImmOpP, regLblOpP, lblOpP, immOpP]
         where
           -- Instructions that take no args
           constInsnP = choice [constP "NOP" NOP,
                                constP "RTI" RTI,
                                constP "RET" RET]
           -- Branches
-          brP = undefined
+          brP = 
+            do op <- constP "BR" BR
+               bc <- branchCondP
+               l  <- labelP
+               return $ op bc l
           -- Instructions that take 3 register args
           triRegOpP = 
             do op <- triOpP
@@ -101,7 +127,7 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
                i <- intP
                return $ op r1 r2 i
           -- Insns that take 1 Imm arg
-          regImmOpP = 
+          immOpP = 
             do op <- constP "TRAP" TRAP
                i  <- intP
                return $ op i
@@ -116,14 +142,19 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
             do op <- constP "JSR" JSR <|> constP "JMP" JMP
                l <- labelP 
                return $ op l
-          
+          -- Takes a reg and an imm
+          regImmOpP = 
+            do op <- biOpRegImmP
+               r1 <- regP
+               i  <- intP
+               return $ op r1 i
 
 -- | Parses an LC4 Comment. 
 -- TODO: can be any alphanumeric and/or more characters. 
 commentP :: Parser String
 commentP = 
   do _delim <- many1 $ char ';'
-     com <- many alpha
+     com <- many (alpha <|> digit <|> symbolP)
      return com
 
 -- | Parses an LC4 directive
@@ -141,6 +172,28 @@ directiveP = choice [constP ".DATA" D_DATA,
                        \d -> intP >>= \i -> return $ d i,
                      constP ".UCONST" D_UCONST >>=
                        \d -> intP >>= \i -> return $ d i]
+
+-- | Parses a labeled LC4 Directive
+
+
+-- | Parses a labeled LC4 Instruction
+lblInsnP :: Parser Line
+lblInsnP = 
+  do lbl <- labelP
+     insn <- insnP 
+     return $ Insn insn (Just lbl)
+     
+-- | Parses an unlabled LC4 Instruction
+unLblInsnP :: Parser Line
+unLblInsnP = 
+  do insn <- insnP
+     return $ Insn insn Nothing
+
+-- | Parse a line as either insn, comment, or directive.
+lineP :: Parser Line
+lineP = choice [lblInsnP, unLblInsnP, 
+                commentP >>= \c -> return $ Comment c, 
+                directiveP >>= \d -> return $ Dir d]
              
 -- | Parses a register identifier
 -- Todo: error handling
@@ -158,8 +211,17 @@ regP = char 'R' >>
          7 -> R7
          _ -> error "Wrong register identifier!"
 
--- | Parses an LC4 label
--- TODO: Fix rules about what chars are valid. Can't start with digit either.
-labelP :: Parser Label
-labelP = many1 (alpha <|> digit)
+-- | Parses an LC4-accepted symbol
+symbolP :: Parser Char
+symbolP = char '_' <|> char '-'
 
+-- | Parses an LC4 label
+labelP :: Parser Label
+labelP = 
+  do a <- alpha 
+     b <- many1 (alpha <|> digit <|> symbolP)
+     return $ a ++ b
+
+-- TEST CASES --
+
+-- t1 :: Test

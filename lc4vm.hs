@@ -14,9 +14,9 @@ import Immediate
 type LineNumber = Int
 type Label = String
 
-data Line = Insn Instruction
+data Line = Insn Instruction (Maybe Label)
+          | Dir Directive (Maybe Label)
           | Comment String
-          | Dir Directive
        deriving Show
 
 data Directive = D_DATA
@@ -41,6 +41,7 @@ data Register = R0
 
 -- Parser builds these
 type Program = Map Int (LineNumber, Line)
+-- | A map from labels to addresses
 type Labels = Map Label Int
 
 -- Mutable state
