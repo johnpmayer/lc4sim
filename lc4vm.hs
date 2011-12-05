@@ -3,7 +3,10 @@ module LC4VM where
 
 import Data.Int (Int16)
 import Data.Map (Map)
+import qualified Data.Map as M
 import Data.Set (Set)
+import qualified Data.Set as S
+import Control.Monad.State
 
 import Immediate
 
@@ -11,9 +14,9 @@ type LineNumber = Int
 type Label = String
 
 data Line = Insn Instruction
-
           | Comment String
           | Dir Directive
+       deriving Show
 
 data Directive = D_DATA
                | D_CODE
@@ -23,6 +26,7 @@ data Directive = D_DATA
                | D_BLKW Int
                | D_CONST Int
                | D_UCONST Int
+  deriving Show
 
 data Register = R0
               | R1
@@ -32,6 +36,7 @@ data Register = R0
               | R5
               | R6
               | R7
+  deriving (Eq, Ord, Show)
 
 -- Parser builds these
 type Program = Map Int (LineNumber, Line)
@@ -41,10 +46,18 @@ type Labels = Map Label Int
 type RegisterFile = Map Register Int
 type Memory = Map Int Int
 type Breakpoints = Set LineNumber
-data CC = CC_N | CC_Z | CC_P deriving Eq
+data CC = CC_N | CC_Z | CC_P deriving (Eq, Show)
 type PC = Int
 
-type VMState = (Program, Labels, RegisterFile, Memory, Breakpoints, PC, CC)
+data VMState = VM { prog :: Program,
+                    lbls :: Labels,
+                    regFile :: RegisterFile,
+                    mem :: Memory,
+                    brks :: Breakpoints,
+                    pc :: PC,
+                    cc :: CC,
+                    psr :: Bool }
+             deriving Show
 
 data BC = N
         | NZ
@@ -53,6 +66,7 @@ data BC = N
         | ZP
         | P
         | NZP
+  deriving Show
 
 data Instruction = NOP
                  | BR BC Label
@@ -60,7 +74,7 @@ data Instruction = NOP
                  | MUL Register Register Register
                  | SUB Register Register Register
                  | DIV Register Register Register
-                 | AddI Register Register Int
+                 | ADDI Register Register Int
                  | CMP Register Register
                  | CMPU Register Register
                  | CMPI Register Int
@@ -88,4 +102,5 @@ data Instruction = NOP
                  | RET
                  | LEA Register Label
                  | LC Register Label
+  deriving Show
 
