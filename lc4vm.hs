@@ -15,7 +15,7 @@ type Label = String
 data Line = Label Label
           | Insn Instruction
           | Dir Directive (Maybe Label)
-          | Whitespace
+          | Empty
        deriving Show
 
 data Directive = D_DATA
