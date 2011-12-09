@@ -1,8 +1,37 @@
+* Description
+
+  An LC4 assembly interpreter in Haskell. For the 240 kids to use hopefully.
+
 * Team
 
   - Github repo is at: https://github.com/johnpmayer/lc4sim
   - Trello is used for collaboration amongst current devs at: 
 	https://trello.com/board/lc4sim/4ed3e6e4aebfc0d21d0ee596
+	
+* Stages
+
+*** Load
+
+	- read x.asm
+	- parse
+	- loader
+	- vmstate
+
+*** Run
+
+	Breakpoint? 
+	   No  -> End
+	   Yes -> commandline waiting
+
+*** Step
+	vmstate step
+
+*** Print
+	- register file 
+	- current stack?
+	- pc
+	- instruction
+	- trace?
 
 * Modules
 
@@ -27,8 +56,6 @@
 
 ** pretty_printer
 
-** cmdline
-
-** error
-
 ** main
+
+   Parses command line args and executes program components. 
