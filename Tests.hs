@@ -10,12 +10,18 @@ allTests :: Test
 allTests = TestList [tInsnCorrect,
                      tCommentCorrect,
                      tIntCorrect,
-                     tDirectiveCorrect]
-
+                     tDirectiveCorrect,
+                     tMisc
+                    ]
+           
 checkInsn x = succeed (parse insnP x)
 checkCmmt x = succeed (parse commentP x)
+checkDir x = succeed (parse directiveP x)
 succeed (Left _) = assert False
 succeed (Right _) = assert True
+
+test :: Parser a -> a -> IO ()
+test p x = succeed (parse p x)
 
 -- | Tests insnP's parse correct things.
 tInsnCorrect :: Test
@@ -52,8 +58,6 @@ tIntCorrect = TestList ["z1" ~: succeed $ parse intP "0x2432",
                         "z2" ~: succeed $ parse intP "#19", 
                         "z3" ~: succeed $ parse intP "#-23"
                        ]
-              
-checkDir x = succeed (parse directiveP x)
 
 tDirectiveCorrect :: Test
 tDirectiveCorrect = TestList ["d1" ~: checkDir ".DATA",
