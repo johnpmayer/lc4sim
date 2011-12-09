@@ -9,44 +9,58 @@ runTests = runTestTT allTests
 allTests :: Test
 allTests = TestList [tInsnCorrect,
                      tCommentCorrect,
+                     tIntCorrect,
                      tDirectiveCorrect]
 
-check x = succeed (parse insnP x)
+checkInsn x = succeed (parse insnP x)
+checkCmmt x = succeed (parse commentP x)
 succeed (Left _) = assert False
 succeed (Right _) = assert True
 
 -- | Tests insnP's parse correct things.
 tInsnCorrect :: Test
-tInsnCorrect = TestList ["i1" ~: check "NOP",
-                "i2" ~: check "BRn label",
-                "i3" ~: check "BRnz label",
-                "i4" ~: check "BRp label",
-                "i5" ~: check "BRnzp label",
-                "i6" ~: check "ADD R5, R3, R5",
-                "i7" ~: check "ADD R1, R0, #12",
-                "i8" ~: check "CMP R0, R7",
-                "i9" ~: check "CMPI R1, #4570",
-                "i10" ~: check "JSR label_label",
-                "i11" ~: check "JSRR R4",
-                "i12" ~: check "AND R0, R4, R3",
-                "i13" ~: check "XOR R7, R6, R5",
-                "i14" ~: check "AND R2, R4, #34",
-                "i15" ~: check "LDR R4, R1, #11",
-                "i16" ~: check "RTI",
-                "i17" ~: check "CONST R4, #33",
-                "i18" ~: check "JMP label_",
-                "i19" ~: check "HICONST R4, #66"
+tInsnCorrect = TestList ["i1" ~: checkInsn "NOP",
+                "i2" ~: checkInsn "BRn label",
+                "i3" ~: checkInsn "BRnz label",
+                "i4" ~: checkInsn "BRp label",
+                "i5" ~: checkInsn "BRnzp label",
+                "i6" ~: checkInsn "ADD R5, R3, R5",
+                "i7" ~: checkInsn "ADD R1, R0, #12",
+                "i8" ~: checkInsn "CMP R0, R7",
+                "i9" ~: checkInsn "CMPI R1, #4570",
+                "i10" ~: checkInsn "JSR label_label",
+                "i11" ~: checkInsn "JSRR R4",
+                "i12" ~: checkInsn "AND R0, R4, R3",
+                "i13" ~: checkInsn "XOR R7, R6, R5",
+                "i14" ~: checkInsn "AND R2, R4, #34",
+                "i15" ~: checkInsn "LDR R4, R1, #11",
+                "i16" ~: checkInsn "RTI",
+                "i17" ~: checkInsn "CONST R4, #33",
+                "i18" ~: checkInsn "JMP label_",
+                "i19" ~: checkInsn "HICONST R4, #66"
                ]
   
 tCommentCorrect :: Test
-tCommentCorrect = TestList ["c1" ~: check ";;this is a comment",
-                            "c2" ~: check "; also a 4739 comment"
+tCommentCorrect = TestList ["c1" ~: checkCmmt ";;this is a comment",
+                            "c2" ~: checkCmmt "; also a 4739 comment",
+                            "c3" ~: checkCmmt ";",
+                            "c4" ~: checkCmmt ";;;;;bola jdkle dkaljd;deifjkd"
                             ]
                   
+tIntCorrect :: Test
+tIntCorrect = TestList ["z1" ~: succeed $ parse intP "0x2432",
+                        "z2" ~: succeed $ parse intP "#19", 
+                        "z3" ~: succeed $ parse intP "#-23"
+                       ]
+              
+checkDir x = succeed (parse directiveP x)
+
 tDirectiveCorrect :: Test
-tDirectiveCorrect = TestList ["d1" ~: check ".DATA",
-                              "d2" ~: check ".ADDR x0473",
-                              "d3" ~: check ".BLKW #44",
-                              "d4" ~: check ".FILL #-1"
+tDirectiveCorrect = TestList ["d1" ~: checkDir ".DATA",
+                              "d2" ~: checkDir ".ADDR 0x0473",
+                              "d3" ~: checkDir ".BLKW #44",
+                              "d4" ~: checkDir ".FILL #-1",
+                              "d5" ~: succeed $ parse unLblDirectiveP ".FILL 0x458\n",
+                              "d6" ~: succeed $ parse lblDirectiveP "LABEL_DIRECTIVE .FILL #-1\n"
                               ]
 

@@ -16,9 +16,10 @@ constP s a = string s >> return a
 
 -- | Parses an LC4 hexadecimal representation.
 hexP :: Parser Int
-hexP = do _ <- char 'x'
+hexP = do _ <- string "0x"
           i <- int
-          return i
+          if i < 0 then fail ""  -- Because this is a hex number, not a decimal. 
+            else return i
 
 -- | Parses an LC4 decimal representation. 
 decP :: Parser Int
@@ -70,14 +71,16 @@ biOpRegImmP = constP "CMPI"  CMPI  <|>
               constP "HICONST" HICONST
 
 -- | Parses a branch condition. 
+-- Order is important. 
 branchCondP :: Parser BC
-branchCondP = constP "n"  N  <|> 
-              constP "nz" NZ <|>
-              constP "np" NP <|>
-              constP "z"  Z  <|>
-              constP "zp" ZP <|>
-              constP "p"  P  <|>
-              constP "nzp" NZP
+branchCondP = choice [constP "nzp" NZP,
+                      constP "nz" NZ,
+                      constP "np" NP,
+                      constP "zp" ZP,
+                      constP "z"  Z ,
+                      constP "n"  N,
+                      constP "p"  P 
+                     ]
 
 -- | Parses an LC4 Instruction. 
 insnP :: Parser Instruction
@@ -92,7 +95,7 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
           brP = 
             do op <- constP "BR" BR
                bc <- wsP branchCondP
-               l  <- endlineP labelP
+               l  <- labelP
                return $ op bc l
           -- Instructions that take 3 register args
           triRegOpP = 
@@ -101,19 +104,19 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
                _  <- wsP $ char ','
                r2 <- wsP regP
                _  <- wsP $ char ','
-               r3 <- endlineP regP
+               r3 <- regP
                return $ op r1 r2 r3
           -- Insns that take 2 reg args
           duoRegOpP = 
             do op <- wsP biOpP
                r1 <- wsP regP
                _  <- wsP $ char ','
-               r2 <- endlineP regP
+               r2 <- regP
                return $ op r1 r2
           -- Insns that take 1 reg arg
           unoRegOpP = 
             do op <- wsP uOpP
-               r1 <- endlineP regP
+               r1 <- regP
                return $ op r1
           -- Insns that take 2 reg and 1 Imm arg
           duoRegImmOpP = 
@@ -122,55 +125,57 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
                _  <- wsP $ char ','
                r2 <- wsP regP
                _  <- wsP $ char ','
-               i <- endlineP intP
+               i <- intP
                return $ op r1 r2 i
           -- Insns that take 1 Imm arg
           immOpP = 
             do op <- wsP $ constP "TRAP" TRAP
-               i  <- endlineP intP
+               i  <- intP
                return $ op i
           -- Takes a reg and a label
           regLblOpP = 
             do op <- wsP $ constP "LEA" LEA <|> constP "LC" LC
                r1 <- wsP $ regP
-               l  <- endlineP labelP
+               l  <- labelP
                return $ op r1 l
           -- Takes a label
           lblOpP = 
             do op <- wsP $ constP "JSR" JSR <|> constP "JMP" JMP
-               l <- endlineP $ labelP 
+               l  <- labelP 
                return $ op l
           -- Takes a reg and an imm
           regImmOpP = 
             do op <- wsP $ biOpRegImmP
                r1 <- wsP $ regP
                _  <- wsP $ char ','
-               i  <- endlineP $ intP
+               i  <- intP
                return $ op r1 i
 
 -- | Parses an LC4 Comment. 
 commentP :: Parser String
 commentP = 
-  do _delim <- many1 $ char ';'
+  do _delim <- wsP . many1 $ char ';'
      com <- many (alpha <|> digit <|> symbolP)
-     _newline <- char '\n'
      return com
 
 -- | Parses an LC4 directive
 directiveP :: Parser Directive
 directiveP = choice [constP ".DATA" D_DATA,
                      constP ".CODE" D_CODE,
-                     constP ".ADDR" D_ADDR >>= 
-                      \d -> intP >>= \i -> return $ d i,
+                     argedDirectiveP ".ADDR" D_ADDR,
                      constP ".FALIGN" D_FALIGN,
-                     constP ".FILL" D_FILL >>=
-                       \d -> intP >>= \i -> return $ d i,
-                     constP ".BLKW" D_BLKW >>=
-                       \d -> intP >>= \i -> return $ d i,
-                     constP ".CONST" D_CONST >>= 
-                       \d -> intP >>= \i -> return $ d i,
-                     constP ".UCONST" D_UCONST >>=
-                       \d -> intP >>= \i -> return $ d i]
+                     argedDirectiveP ".FILL" D_FILL,
+                     argedDirectiveP ".BLKW" D_BLKW,
+                     argedDirectiveP ".CONST" D_CONST, 
+                     argedDirectiveP ".UCONST" D_UCONST
+                    ]
+  where 
+    -- | For directives that require an integer argument
+    argedDirectiveP :: String -> (Int -> Directive) -> Parser Directive
+    argedDirectiveP s d = 
+      do d' <- wsP $ constP s d 
+         i <- intP 
+         return $ d' i
 
 -- | Parses a labeled LC4 Directive
 lblDirectiveP :: Parser Line
@@ -183,12 +188,20 @@ lblDirectiveP =
 unLblDirectiveP :: Parser Line
 unLblDirectiveP = endlineP directiveP >>= \d -> return $ Dir d Nothing
 
+-- | Parses an empty line (Comment, whitespace)
+emptyP :: Parser Line
+emptyP = many (char ' ') >> 
+         many commentP >>
+         char '\n' >>
+         return Empty
+
 -- | Parse a line as either insn, comment, or directive.
 lineP :: Parser Line
-lineP = choice [labelP >>= \l -> return $ Label l,
-                insnP >>= \i -> return $ Insn i,
+lineP = choice [endlineP labelP >>= \l -> return $ Label l,
+                endlineP insnP >>= \i -> return $ Insn i,
                 lblDirectiveP, unLblDirectiveP,
-                wsP (string "\n" <|> commentP) >> return Empty]
+                emptyP
+               ]
              
 -- | Removes whitespace after a parse
 wsP :: Parser a -> Parser a
