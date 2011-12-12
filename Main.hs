@@ -86,11 +86,11 @@ main = do
   args <- getArgs
   let l = length args
   if (l > 1 || l < 1) then
-    putStr "Incorrect number of arguments, type --help for help."
+    putStrLn "Incorrect number of arguments, type --help for help."
     else 
     do 
       let arg = head args
-      lines <- parseFromFile (many1 lineP) arg
-      case lines of
-        Left _ -> error "parse error"
-        Right ls -> repl $ load ls
+      prelines <- parseLinesFromFile arg
+      lines <- checkParsedLines prelines
+      repl $ load lines
+
