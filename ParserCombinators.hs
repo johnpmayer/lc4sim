@@ -18,9 +18,9 @@ type ParseError = String
 -- the same type.
 parse :: Parser a -> String -> Either ParseError a
 parse parser str = case (doParse parser str) of 
-    []      -> Left  "No parses"
+    []      -> Left  "No parse on: " ++ str
     [(a,_)] -> Right a
-    _       -> Left  "Multiple parses"
+    _       -> Left  "Multiple parses on: " ++ str
 
 
 

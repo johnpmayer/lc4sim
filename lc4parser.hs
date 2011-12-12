@@ -181,24 +181,23 @@ directiveP = choice [constP ".DATA" D_DATA,
 lblDirectiveP :: Parser Line
 lblDirectiveP = 
   do lbl <- wsP $ labelP
-     dir <- endlineP $ directiveP
+     dir <- directiveP
      return $ Dir dir (Just lbl)
      
 -- | Parses an unlabeled LC4 directive
 unLblDirectiveP :: Parser Line
-unLblDirectiveP = endlineP directiveP >>= \d -> return $ Dir d Nothing
+unLblDirectiveP = directiveP >>= \d -> return $ Dir d Nothing
 
 -- | Parses an empty line (Comment, whitespace)
 emptyP :: Parser Line
 emptyP = many (char ' ') >> 
          many commentP >>
-         char '\n' >>
          return Empty
 
 -- | Parse a line as either insn, comment, or directive.
 lineP :: Parser Line
-lineP = choice [endlineP labelP >>= \l -> return $ Label l,
-                endlineP insnP >>= \i -> return $ Insn i,
+lineP = choice [labelP >>= \l -> return $ Label l,
+                insnP >>= \i -> return $ Insn i,
                 lblDirectiveP, unLblDirectiveP,
                 emptyP
                ]
@@ -208,12 +207,6 @@ wsP :: Parser a -> Parser a
 wsP p = do a <- p
            _ws <- many $ char ' '
            return a
-           
--- | Removes any comments and a newline after a parse
-endlineP :: Parser a -> Parser a
-endlineP p = do a <- p
-                _ws <- string "\n" <|> commentP
-                return a
         
 -- | Parses a register identifier
 regP :: Parser Register

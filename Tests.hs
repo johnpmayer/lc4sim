@@ -20,8 +20,8 @@ checkDir x = succeed (parse directiveP x)
 succeed (Left _) = assert False
 succeed (Right _) = assert True
 
-test :: Parser a -> a -> IO ()
-test p x = succeed (parse p x)
+testMy :: Parser a -> String -> IO ()
+testMy p x = succeed (parse p x)
 
 -- | Tests insnP's parse correct things.
 tInsnCorrect :: Test
@@ -69,3 +69,9 @@ tDirectiveCorrect = TestList ["d1" ~: checkDir ".DATA",
                               "d6" ~: succeed $ parse lblDirectiveP "LABEL_DIRECTIVE .FILL #-1\n"
                               ]
 
+tMisc :: Test
+tMisc = TestList ["e1" ~: testMy lineP "\n",
+                  "e2" ~: testMy lineP "    \n",
+                  "e3" ~: testMy lineP ".DATA\n",
+                  "e4" ~: testMy lineP ".ADDR x2000\n",
+                  "e5" ~: testMy lineP "\n"]
