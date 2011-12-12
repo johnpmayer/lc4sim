@@ -49,7 +49,7 @@ tInsnCorrect = TestList ["i1" ~: checkInsn "NOP",
 tCommentCorrect :: Test
 tCommentCorrect = TestList ["c1" ~: checkCmmt ";;this is a comment",
                             "c2" ~: checkCmmt "; also a 4739 comment",
-                            "c3" ~: checkCmmt ";",
+                            "c3" ~: checkCmmt ";;;;;",
                             "c4" ~: checkCmmt ";;;;;bola jdkle dkaljd;deifjkd"
                             ]
                   

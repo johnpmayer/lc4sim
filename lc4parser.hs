@@ -199,7 +199,7 @@ lineP =
   do 
     _ws <- many $ char ' '
     choice [insnP >>= \i -> return $ Insn i,
-            lblDirectiveP, wsP unLblDirectiveP,
+            lblDirectiveP, unLblDirectiveP,
             labelP >>= \l -> return $ Label l,
             emptyP,
             string "" >> return Empty
