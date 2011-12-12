@@ -39,7 +39,7 @@ data Register = R0
   deriving (Eq, Ord, Show)
 
 -- Parser builds these
-type Program = Map Int (LineNumber, Line)
+type Program = Map Int Instruction -- (LineNumber, Line)
 -- | A map from labels to addresses
 type Labels = Map Label Int
 
