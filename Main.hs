@@ -57,15 +57,15 @@ processCmd cmd
   | cmd `elem` ["l", "load"] = putStrLn "This will load the file" 
   | otherwise = putStrLn "Command not recognized. Type help or h for help."
 
-repl :: IO ()
-repl = 
+repl :: VMState -> IO ()
+repl s = 
   do 
     putStr prompt
     hFlush stdout
     cmd <- getLine
     processCmd (map toLower cmd)
     putStrLn $ "You typed " ++ cmd ++ ". "
-    main
+    repl
     
 mainHelp :: String
 mainHelp = "LC4 Interpreter. Usage: lc4sim <filename.asm>"
