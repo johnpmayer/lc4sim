@@ -65,8 +65,8 @@ tDirectiveCorrect = TestList ["d1" ~: checkDir ".DATA",
                               "d2" ~: checkDir ".ADDR 0x0473",
                               "d3" ~: checkDir ".BLKW #44",
                               "d4" ~: checkDir ".FILL #-1",
-                              "d5" ~: succeed $ parse unLblDirectiveP ".FILL 0x458\n",
-                              "d6" ~: succeed $ parse lblDirectiveP "LABEL_DIRECTIVE .FILL #-1\n"
+                              "d5" ~: succeed $ parse unLblDirectiveP ".FILL 0x458",
+                              "d6" ~: succeed $ parse lblDirectiveP "LABEL_DIRECTIVE .FILL #-1"
                               ]
 
 tMisc :: Test
@@ -75,4 +75,4 @@ tMisc = TestList ["e1" ~: testMy lineP "",
                   "e3" ~: testMy lineP ".DATA",
                   "e4" ~: testMy lineP ".ADDR x2000",
                   "e5" ~: testMy lineP "    .ADDR 0x4573",
-                  "e6" ~: testMy lineP "    BRnzp label_blah"]
+                  "e6" ~: testMy lineP "    BRnzp label_blah ;;comment here"]

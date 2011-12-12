@@ -155,7 +155,7 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
 commentP :: Parser String
 commentP = 
   do _delim <- wsP . many1 $ char ';'
-     com <- many (alpha <|> digit <|> symbolP)
+     com <- many get
      return com
 
 -- | Parses an LC4 directive
@@ -190,7 +190,7 @@ unLblDirectiveP = directiveP >>= \d -> return $ Dir d Nothing
 
 -- | Parses an empty line (Comment, whitespace)
 emptyP :: Parser Line
-emptyP = many1 (string " " <|> commentP) >> 
+emptyP = many (string " " <|> commentP) >> 
          string "" >>
          return Empty
 

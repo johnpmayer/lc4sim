@@ -19,10 +19,10 @@ type ParseError = String
 parse :: Parser a -> String -> Either ParseError a
 parse parser str = case (doParse parser str) of 
     []      -> Left $ "No parse on: " ++ str
-    [(a,"")] -> Right a
-    [(_,rem')] -> Left $ "Didn't consume entire line" ++ 
-                      "\n\t" ++ str ++
-                      "\n\t remained: " ++ rem'
+    [(a,_)] -> Right a
+    -- [(_,rem')] -> Left $ "Didn't consume entire line" ++ 
+    --                   "\n\t" ++ str ++
+    --                   "\n\t remained: " ++ rem'
     _       -> Left $ "Multiple parses on: " ++ str
 
 
