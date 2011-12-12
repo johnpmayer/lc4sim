@@ -6,9 +6,12 @@ module Main where
 
 import System.Exit (exitSuccess)
 import System.IO
+import System (getArgs)
 import Data.Char
+import Control.Monad.State
 
 import LC4Parser
+import ParserCombinators
 
 -- | The welcome message. This is printed when the interpreter is started
 --   without any command-line arguments. 
@@ -35,8 +38,14 @@ helpText =
   \h | help -- Print this message.\n"
 
 -- | Processes a .asm file into a list of lines.
-readAsmFile :: String -> [Line]
-readAsmFile h = undefined
+-- Argument is filename
+readAsmFile :: String -> IO ()
+readAsmFile fn = 
+  do 
+    y <- parseFromFile lineP fn
+    case y of 
+      Left _ -> putStrLn "Error parsing file"
+      Right lines -> putStrLn "Parsed file successfully"
 
 -- | Processes a command from main and calls the appropriate 
 --   functions to deal with them.
@@ -48,13 +57,28 @@ processCmd cmd
   | cmd `elem` ["l", "load"] = putStrLn "This will load the file" 
   | otherwise = putStrLn "Command not recognized. Type help or h for help."
 
+repl :: IO ()
+repl = 
+  do 
+    putStr prompt
+    hFlush stdout
+    cmd <- getLine
+    processCmd (map toLower cmd)
+    putStrLn $ "You typed " ++ cmd ++ ". "
+    main
+    
+mainHelp :: String
+mainHelp = "LC4 Interpreter. Usage: lc4sim <filename.asm>"
+
 -- | The main REPL loop.
 main :: IO ()
 main = do 
-  putStr prompt
-  hFlush stdout
-  cmd <- getLine
-  processCmd (map toLower cmd)
-  putStrLn $ "You typed " ++ cmd ++ ". "
-  main
+  args <- getArgs
+  let l = length args
+  if (l > 1 || l < 1) then
+    putStr "Incorrect number of arguments, type --help for help."
+    else 
+    do 
+      let arg = head args
+      
     
