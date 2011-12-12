@@ -4,7 +4,7 @@
 
 module Main where
 
-import System.Exit (exitSuccess)
+import System.Exit (exitSuccess, exitFailure)
 import System.IO
 import System (getArgs)
 import Data.Char
@@ -62,6 +62,23 @@ repl s =
     
 mainHelp :: String
 mainHelp = "LC4 Interpreter. Usage: lc4sim <filename.asm>"
+
+parseLinesFromFile :: String -> IO ([Either ParseError Line])
+parseLinesFromFile filename = do
+  handle <- openFile filename ReadMode
+  contents <- hGetContents handle
+  return $ fmap (\lineS -> parse lineP lineS) (lines contents)
+
+checkParsedLines :: ([Either ParseError Line]) -> IO [Line]
+checkParsedLines [] = return []
+checkParsedLines (Left err : _ls) = 
+  do
+    putStrLn $ "Parser failed:\n\t" ++ err
+    exitFailure
+checkParsedLines (Right l : ls) = 
+  do
+    ls <- checkParsedLines ls
+    return $ l : ls
 
 -- | The main REPL loop.
 main :: IO ()
