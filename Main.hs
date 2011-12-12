@@ -67,6 +67,7 @@ parseLinesFromFile :: String -> IO ([Either ParseError Line])
 parseLinesFromFile filename = do
   handle <- openFile filename ReadMode
   contents <- hGetContents handle
+  putStrLn $ show $ lines contents
   return $ fmap (\lineS -> parse lineP lineS) (lines contents)
 
 checkParsedLines :: ([Either ParseError Line]) -> IO [Line]
