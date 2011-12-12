@@ -196,9 +196,9 @@ emptyP = many (char ' ') >>
 
 -- | Parse a line as either insn, comment, or directive.
 lineP :: Parser Line
-lineP = choice [labelP >>= \l -> return $ Label l,
-                insnP >>= \i -> return $ Insn i,
-                lblDirectiveP, unLblDirectiveP,
+lineP = choice [wsP insnP >>= \i -> return $ Insn i,
+                wsP lblDirectiveP, wsP unLblDirectiveP,
+                wsP labelP >>= \l -> return $ Label l,
                 emptyP
                ]
              
