@@ -200,7 +200,8 @@ lineP =
   do 
     _ws <- many (char ' ' <|> char '\t')
     choice [insnP >>= \i -> return $ Insn i,
-            lblDirectiveP, unLblDirectiveP,
+            lblDirectiveP, 
+            unLblDirectiveP,
             labelP >>= \l -> return $ Label l,
             emptyP
            ]
@@ -208,8 +209,7 @@ lineP =
 -- | Removes whitespace after a parse
 wsP :: Parser a -> Parser a
 wsP p = do a <- p
-           _ws <- many $ char ' '
-           _tb <- many $ char '\t'
+           _ws <- many $ char ' ' <|> char '\t'
            return a
         
 -- | Parses a register identifier
