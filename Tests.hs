@@ -70,8 +70,9 @@ tDirectiveCorrect = TestList ["d1" ~: checkDir ".DATA",
                               ]
 
 tMisc :: Test
-tMisc = TestList ["e1" ~: testMy lineP "\n",
-                  "e2" ~: testMy lineP "    \n",
-                  "e3" ~: testMy lineP ".DATA\n",
-                  "e4" ~: testMy lineP ".ADDR x2000\n",
-                  "e5" ~: testMy lineP "\n"]
+tMisc = TestList ["e1" ~: testMy lineP "",
+                  "e2" ~: testMy lineP "    ",
+                  "e3" ~: testMy lineP ".DATA",
+                  "e4" ~: testMy lineP ".ADDR x2000",
+                  "e5" ~: testMy lineP "    .ADDR 0x4573",
+                  "e6" ~: testMy lineP "    BRnzp label_blah"]

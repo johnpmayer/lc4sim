@@ -190,17 +190,20 @@ unLblDirectiveP = directiveP >>= \d -> return $ Dir d Nothing
 
 -- | Parses an empty line (Comment, whitespace)
 emptyP :: Parser Line
-emptyP = many (char ' ') >> 
-         many commentP >>
+emptyP = many1 (string " " <|> commentP) >> 
          return Empty
 
 -- | Parse a line as either insn, comment, or directive.
 lineP :: Parser Line
-lineP = choice [wsP insnP >>= \i -> return $ Insn i,
-                wsP lblDirectiveP, wsP unLblDirectiveP,
-                wsP labelP >>= \l -> return $ Label l,
-                emptyP
-               ]
+lineP = 
+  do 
+    _ws <- many $ char ' '
+    choice [insnP >>= \i -> return $ Insn i,
+            lblDirectiveP, wsP unLblDirectiveP,
+            labelP >>= \l -> return $ Label l,
+            emptyP,
+            string "" >> return Empty
+           ]
              
 -- | Removes whitespace after a parse
 wsP :: Parser a -> Parser a
