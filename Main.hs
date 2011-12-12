@@ -11,7 +11,9 @@ import Data.Char
 import Control.Monad.State
 
 import LC4Parser
+import LC4VM
 import ParserCombinators
+import VMLoader
 
 -- | The welcome message. This is printed when the interpreter is started
 --   without any command-line arguments. 
@@ -37,14 +39,6 @@ helpText =
   \ that specific element.\n \
   \h | help -- Print this message.\n"
 
--- | Processes a .asm file into a list of lines.
--- Argument is filename
-readAsmFile :: String -> [Line]
-readAsmFile fn = 
-    let y = parseFromFile lineP fn in
-    case y of 
-      Left _ -> putStrLn "Error parsing file"
-      Right lines -> putStrLn "Parsed file successfully"
 
 -- | Processes a command from main and calls the appropriate 
 --   functions to deal with them.
@@ -64,7 +58,7 @@ repl s =
     cmd <- getLine
     processCmd (map toLower cmd)
     putStrLn $ "You typed " ++ cmd ++ ". "
-    repl
+    repl s
     
 mainHelp :: String
 mainHelp = "LC4 Interpreter. Usage: lc4sim <filename.asm>"
@@ -79,7 +73,7 @@ main = do
     else 
     do 
       let arg = head args
-      lines <- parseFromFile lineP arg
+      lines <- parseFromFile (many1 lineP) arg
       case lines of
         Left _ -> error "parse error"
-        Right ls -> ls
+        Right ls -> repl $ load ls
