@@ -50,7 +50,9 @@ instance PP Instruction where
   pp NOP = PP.text "NOP"
   pp RET = PP.text "RET"
   pp RTI = PP.text "RTI"
-  -- Branch
+  
+  pp (BR cc lbl) = PP.text "BR" <> pp cc <+> PP.text lbl
+  
   pp (ADD r1 r2 r3) = triOpPP "ADD" r1 r2 r3
   pp (MUL r1 r2 r3) = triOpPP "MUL" r1 r2 r3
   pp (SUB r1 r2 r3) = triOpPP "SUB" r1 r2 r3
@@ -85,3 +87,6 @@ instance PP Instruction where
   pp (JSR l) = PP.text "JSR" <+> PP.text l
   pp (JMP l) = PP.text "JMP" <+> PP.text l
   
+-- | Given a PP instance type, convert to string.
+display :: PP a => a -> String
+display = show . pp

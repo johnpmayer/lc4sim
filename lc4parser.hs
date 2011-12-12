@@ -16,7 +16,7 @@ constP s a = string s >> return a
 
 -- | Parses an LC4 hexadecimal representation.
 hexP :: Parser Int
-hexP = do _ <- string "0x"
+hexP = do _ <- string "0x" <|> string "x"
           i <- int
           if i < 0 then fail ""  -- Because this is a hex number, not a decimal. 
             else return i

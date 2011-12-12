@@ -56,7 +56,8 @@ tCommentCorrect = TestList ["c1" ~: checkCmmt ";;this is a comment",
 tIntCorrect :: Test
 tIntCorrect = TestList ["z1" ~: succeed $ parse intP "0x2432",
                         "z2" ~: succeed $ parse intP "#19", 
-                        "z3" ~: succeed $ parse intP "#-23"
+                        "z3" ~: succeed $ parse intP "#-23",
+                        "z4" ~: succeed $ parse intP "x4324"
                        ]
 
 tDirectiveCorrect :: Test
