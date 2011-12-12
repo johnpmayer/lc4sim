@@ -39,10 +39,9 @@ helpText =
 
 -- | Processes a .asm file into a list of lines.
 -- Argument is filename
-readAsmFile :: String -> IO ()
+readAsmFile :: String -> [Line]
 readAsmFile fn = 
-  do 
-    y <- parseFromFile lineP fn
+    let y = parseFromFile lineP fn in
     case y of 
       Left _ -> putStrLn "Error parsing file"
       Right lines -> putStrLn "Parsed file successfully"
@@ -80,5 +79,7 @@ main = do
     else 
     do 
       let arg = head args
-      
-    
+      lines <- parseFromFile lineP arg
+      case lines of
+        Left _ -> error "parse error"
+        Right ls -> ls
