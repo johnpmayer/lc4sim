@@ -92,5 +92,6 @@ main = do
       let arg = head args
       prelines <- parseLinesFromFile arg
       lines <- checkParsedLines prelines
+      putStrLn $ show lines
       repl $ load lines
 
