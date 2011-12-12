@@ -191,24 +191,25 @@ unLblDirectiveP = directiveP >>= \d -> return $ Dir d Nothing
 -- | Parses an empty line (Comment, whitespace)
 emptyP :: Parser Line
 emptyP = many1 (string " " <|> commentP) >> 
+         string "" >>
          return Empty
 
 -- | Parse a line as either insn, comment, or directive.
 lineP :: Parser Line
 lineP = 
   do 
-    _ws <- many $ char ' '
+    _ws <- many (char ' ' <|> char '\t')
     choice [insnP >>= \i -> return $ Insn i,
             lblDirectiveP, unLblDirectiveP,
             labelP >>= \l -> return $ Label l,
-            emptyP,
-            string "" >> return Empty
+            emptyP
            ]
              
 -- | Removes whitespace after a parse
 wsP :: Parser a -> Parser a
 wsP p = do a <- p
            _ws <- many $ char ' '
+           _tb <- many $ char '\t'
            return a
         
 -- | Parses a register identifier
