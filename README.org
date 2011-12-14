@@ -40,7 +40,7 @@
    Parses LC4 assembly file into lc4env data structures to be used in rest of 
    program. 
    
-** lc4env
+** lc4vm
 
    The data type definitions of the LC4 environment, as well as associated 
    data structures used to represent state.
@@ -52,10 +52,20 @@
 ** simulator
 
   - Performs the interpretation and altering of state.
-  - Prepares the environment from parser. 
 
-** pretty_printer
+** lc4PP
 
+   The LC4 pretty printer. 
+   
 ** main
 
    Parses command line args and executes program components. 
+   This is where the REPL lies. 
+** Parser
+
+   The parser module that parses generic strings. Works with ParserCombinators.
+
+** vmloader
+  
+   Takes a parsed .asm file and loads the appropriate values into the LC4 
+   virtual machine. Instantiates a new VM for the simulator. 
