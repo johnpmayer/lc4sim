@@ -1,12 +1,13 @@
 	.DATA
-	.ADDR x2000		; Start the data at address 0x4000
+	.ADDR #2000		; Start the data at address 0x4000
 global_array
 	.FILL #0		
 	.FILL #1
 	.CODE			; This is a code segment
 	.ADDR 0x0000		; Start filling in instructions at address 0x00
 INIT
-	LEA R0, global_array	; R0 contains the address of the data
+	CONST R0, #2000		; LEA R0, global_array
+				; R0 contains the address of the data
 	CONST R1, #2		; i = 2, loop counter init to 2
 	JMP TEST
 BODY
