@@ -32,22 +32,28 @@ helpText =
   "This is a list of commands available to you. Some commands expect \
   \an argument. \n \
   \\n \
-  \l | load <filename> -- load the asm file into the interpreter.\n \
   \q | quit -- Leave the interpreter.\n \
   \n | next -- Step to the next instruction.\n \
   \p | print [arg] -- Print the system state. Optional arg will print \
   \ that specific element.\n \
   \h | help -- Print this message.\n"
 
+success :: Either ParseError Line -> Bool
+success (Left _) = False
+success (Right _) = True
+
+-- | Prints the argument to screen
+print :: String -> IO ()
+print s = undefined 
 
 -- | Processes a command from main and calls the appropriate 
 --   functions to deal with them.
-processCmd :: String -> IO ()
+processCmd :: [String] -> IO ()
 processCmd cmd
-  | cmd `elem` ["quit", "q"] = exitSuccess
-  | cmd `elem` ["help", "h"] = putStrLn helpText
-  | cmd `elem` ["n", "next"] = putStrLn "This will step next"
-  | cmd `elem` ["l", "load"] = putStrLn "This will load the file" 
+  | cmd!!0 `elem` ["quit", "q"] = exitSuccess
+  | cmd!!0 `elem` ["help", "h"] = putStrLn helpText
+  | cmd!!0 `elem` ["n", "next"] = putStrLn "This will step next"
+  | cmd!!0 `elem` ["p", "print"] = putStrLn "This will print somethin."
   | otherwise = putStrLn "Command not recognized. Type help or h for help."
 
 repl :: VMState -> IO ()
@@ -56,9 +62,14 @@ repl s =
     putStr prompt
     hFlush stdout
     cmd <- getLine
-    processCmd (map toLower cmd)
+    let cmds = words cmd
+    if length cmds < 1 then 
+      repl s
+      else 
+      processCmd (map (\s -> map toLower s) cmds)
     putStrLn $ "You typed " ++ cmd ++ ". "
     repl s
+      
     
 mainHelp :: String
 mainHelp = "LC4 Interpreter. Usage: lc4sim <filename.asm>"
@@ -67,7 +78,7 @@ parseLinesFromFile :: String -> IO ([Either ParseError Line])
 parseLinesFromFile filename = do
   handle <- openFile filename ReadMode
   contents <- hGetContents handle
-  putStrLn $ show $ lines contents
+  -- putStrLn $ show $ lines contents
   return $ fmap (\lineS -> parse lineP lineS) (lines contents)
 
 checkParsedLines :: ([Either ParseError Line]) -> IO [Line]
@@ -81,7 +92,7 @@ checkParsedLines (Right l : ls) =
     ls <- checkParsedLines ls
     return $ l : ls
 
--- | The main REPL loop.
+-- | Program entry.
 main :: IO ()
 main = do 
   args <- getArgs
@@ -93,6 +104,6 @@ main = do
       let arg = head args
       prelines <- parseLinesFromFile arg
       lines <- checkParsedLines prelines
-      putStrLn $ show lines
+      -- putStrLn $ show lines
       repl $ load lines
 
