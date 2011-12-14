@@ -5,10 +5,19 @@ module LC4Parser where
 -- | Parses LC4 lines. 
 -- Ignores all comments unless they are on a separate line.
 
+import Data.Char
+
 import LC4VM
 import Parser
 import ParserCombinators
 
+pow16 :: Int -> Int
+pow16 0 = 1
+pow16 x = 16 * pow16 (x-1)
+
+hexToDec :: String -> Int
+hexToDec [] = 0
+hexToDec (x:xs) = digitToInt x * (pow16 $ length xs) + hexToDec xs
 
 -- | Parse a String as a specific datatype. 
 constP :: String -> a -> Parser a
@@ -17,7 +26,11 @@ constP s a = string s >> return a
 -- | Parses an LC4 hexadecimal representation.
 hexP :: Parser Int
 hexP = do _ <- string "0x" <|> string "x"
-          i <- int
+          hexString <- many.choice $ [ char 'a', char 'b', 
+                                       char 'c', char 'd',
+                                       char 'e', char 'f',
+                                       digit ]
+          let i = hexToDec hexString
           if i < 0 then fail ""  -- Because this is a hex number, not a decimal. 
             else return i
 
@@ -136,6 +149,7 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
           regLblOpP = 
             do op <- wsP $ constP "LEA" LEA <|> constP "LC" LC
                r1 <- wsP $ regP
+               _ <- wsP $ char ','
                l  <- labelP
                return $ op r1 l
           -- Takes a label

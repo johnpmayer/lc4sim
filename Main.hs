@@ -17,6 +17,7 @@ import LC4VM
 import ParserCombinators
 import VMLoader
 import Simulator
+import LC4PP
 
 -- | The welcome message. This is printed when the interpreter is started
 --   without any command-line arguments. 
@@ -74,13 +75,14 @@ showProgram s =
     putStrLn . show . pc $ s
     putStrLn (case M.lookup (pc s) (LC4VM.prog s) of
       Nothing -> "No valid insn"
-      Just insn -> show insn)
+      Just insn -> display insn)
 
 showRegisters :: VMState -> IO ()
 showRegisters s = 
   do
     putStrLn "Regfile"
     putStrLn . unlines $ fmap show $ M.toList $ regFile s
+    putStrLn . display $ cc s
 
 nextInstruction :: VMState -> IO VMState
 nextInstruction s = return $ execState nextStep s
