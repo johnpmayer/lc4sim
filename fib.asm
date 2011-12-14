@@ -1,13 +1,29 @@
+;; Fibonacci program
+;; F_0 = 0
+;; F_1 = 1;
+;;
+;; i = 2;
+;; while (i<20){
+;; 	F_i = F_(i-1) + F_(i-2);
+;; 	i = i+1;
+;; }
+
+
+;;;
+	;; Start of data section
 	.DATA
-	.ADDR #2000		; Start the data at address 0x4000
+	.ADDR x2000		; Start the data at address 0x4000
+
 global_array
 	.FILL #0		
 	.FILL #1
+
+	;; Start of code section
 	.CODE			; This is a code segment
 	.ADDR 0x0000		; Start filling in instructions at address 0x00
+
 INIT
-	CONST R0, #2000		; LEA R0, global_array
-				; R0 contains the address of the data
+	LEA R0, global_array	; R0 contains the address of the data
 	CONST R1, #2		; i = 2, loop counter init to 2
 	JMP TEST
 BODY
@@ -17,6 +33,7 @@ BODY
 	ADD R0, R0, #1		; increment data address
 	STR R4, R0, #1		; Store R4 into the data address indicated by R0, +1
 	ADD R1, R1, #1		; i = i + 1, incrementing loop counter
+	
 TEST
 	CMPI R1, #20		; compare loop counter to 20
 	BRn BODY
