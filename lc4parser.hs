@@ -136,6 +136,7 @@ insnP = choice [constInsnP, brP, triRegOpP, duoRegOpP, unoRegOpP,
           regLblOpP = 
             do op <- wsP $ constP "LEA" LEA <|> constP "LC" LC
                r1 <- wsP $ regP
+               _ <- wsP $ char ','
                l  <- labelP
                return $ op r1 l
           -- Takes a label
