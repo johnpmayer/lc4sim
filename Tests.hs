@@ -43,7 +43,8 @@ tInsnCorrect = TestList ["i1" ~: checkInsn "NOP",
                 "i16" ~: checkInsn "RTI",
                 "i17" ~: checkInsn "CONST R4, #33",
                 "i18" ~: checkInsn "JMP label_",
-                "i19" ~: checkInsn "HICONST R4, #66"
+                "i19" ~: checkInsn "HICONST R4, #66",
+                "i20" ~: checkInsn "LEA R0, global_array"
                ]
   
 tCommentCorrect :: Test
