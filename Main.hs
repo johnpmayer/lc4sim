@@ -65,7 +65,7 @@ showMemory :: VMState -> IO ()
 showMemory s =
   do
     putStrLn "Memory"
-    putStrLn . show . memory $ s
+    putStrLn . unlines . (fmap show) . M.toList . memory $ s
 
 showProgram :: VMState -> IO ()
 showProgram s =
@@ -80,8 +80,7 @@ showRegisters :: VMState -> IO ()
 showRegisters s = 
   do
     putStrLn "Regfile"
-    let registers = regFile s
-    putStrLn $ show registers
+    putStrLn . unlines $ fmap show $ M.toList $ regFile s
 
 nextInstruction :: VMState -> IO VMState
 nextInstruction s = return $ execState nextStep s

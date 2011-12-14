@@ -4,6 +4,7 @@
 module VMLoader where
 
 import Control.Monad.State
+import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -18,6 +19,16 @@ data LoaderState = L { mode :: LoaderMode,
                        brks :: Breakpoints,
                        mem :: Memory }
 
+blankRegFile :: Map Register Int
+blankRegFile = M.fromList [ (R0,0),
+                            (R1,0),
+                            (R2,0),
+                            (R3,0),
+                            (R4,0),
+                            (R5,0),
+                            (R6,0),
+                            (R7,0) ]
+
 initial :: LoaderState
 initial = L START 0 M.empty M.empty S.empty M.empty
 
@@ -26,7 +37,7 @@ load ls = convert $ execState (loadAll ls) initial where
 
   convert :: LoaderState -> VMState
   convert (L _ _a p lbls' brks' mem') = 
-    VM p lbls' M.empty mem' brks' 0 CC_Z False
+    VM p lbls' blankRegFile mem' brks' 0 CC_Z False
 
   loadAll :: [Line] -> State LoaderState ()
   loadAll = foldl (\soFar line -> soFar >> (loadLine line)) (return ())
