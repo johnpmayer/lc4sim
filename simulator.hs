@@ -75,8 +75,16 @@ evalBranch cc' bc' = case bc' of
                                           || cc' == CC_P
                                        NZP -> True
 
+nextStep :: State (VMState) ()
+nextStep = 
+  do
+    s <- get
+    case M.lookup (pc s) (prog s) of
+      Nothing -> error "PC at loaction with no valid instruction"
+      Just insn -> step insn
+
 step :: Instruction -> State (VMState) ()
-step NOP = return ()
+step NOP = incrPC
 
 step (BR bc lbl) = do cc' <- readCC
                       target <- derefLabel lbl

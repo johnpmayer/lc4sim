@@ -67,7 +67,7 @@ data VMState = VM { prog :: Program,
                     pc :: PC,
                     cc :: CC,
                     psr :: Bool }
-             deriving Show
+             deriving (Eq, Show)
 
 data BC = N
         | NZ
@@ -76,7 +76,7 @@ data BC = N
         | ZP
         | P
         | NZP
-  deriving Show
+  deriving (Eq, Show)
 
 data Instruction = NOP
                  | BR BC Label
@@ -112,5 +112,5 @@ data Instruction = NOP
                  | RET
                  | LEA Register Label
                  | LC Register Label
-  deriving Show
+  deriving (Eq, Show)
 
