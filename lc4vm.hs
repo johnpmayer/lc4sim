@@ -18,6 +18,7 @@ data Line = Label Label
           | Empty
        deriving Show
 
+-- These are data directives
 data Directive = D_DATA
                | D_CODE
                | D_ADDR Int
@@ -56,7 +57,7 @@ regValue reg regFile = fromMaybe 0 $ M.lookup reg regFile
 memValue :: Int -> Memory -> Int
 memValue addr mem = fromMaybe 0 $ M.lookup addr mem
 lblValue :: Label -> Labels -> Int
-lblValue lbl labels = 
+lblValue lbl labels =
   fromMaybe (error "missing label") $ M.lookup lbl labels
 
 data VMState = VM { prog :: Program,
@@ -113,4 +114,3 @@ data Instruction = NOP
                  | LEA Register Label
                  | LC Register Label
   deriving (Eq, Show)
-
