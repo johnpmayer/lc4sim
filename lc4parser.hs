@@ -1,3 +1,4 @@
+-- This content is released under the (Link Goes Here) MIT License.
 {-# OPTIONS -Wall -fwarn-tabs -fno-warn-type-defaults  #-}
 
 module LC4Parser where
